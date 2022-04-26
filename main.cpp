@@ -22,6 +22,14 @@ enum SPECIAL_MAP {
 	END_MAP = 7
 };
 
+enum MAPPOS_SPECIAL {
+	MSTAR_MAP1 = 5,
+	MDE_ISRAND,
+	MSTAR_MAP2 = 10,
+	MSTAR_MAP3 = 21,
+	MEND_MAP = 23
+};
+
 using namespace std;
 
 //게임 룰
@@ -94,8 +102,8 @@ int main() {
 		
 
 		// 말 위치 출력
-		cout << endl << tPlayer.strName << " 말 위치 : " << mapPosition[tPlayer.iPos] <<endl;
-		cout << tAI.strName << " 말 위치 : " << mapPosition[tAI.iPos] << endl <<endl;
+		cout << endl << tPlayer.strName << " 말 위치 : " << tPlayer.iPos <<endl;
+		cout << tAI.strName << " 말 위치 : " << tAI.iPos << endl <<endl;
 		
 		cout << "1. 주사위 굴리기" << endl;
 		cout << "2. 게임 종료" << endl;
@@ -105,22 +113,47 @@ int main() {
 		if (iMenu == MENU_EXIT) break;
 		switch(iMenu) {
 		case MENU_ROLL :
+			bool isInDeIsland = false;
 			// 플레이어 이동
 			int dice = rand() % 6 + 1;
 			cout << tPlayer.strName << "(이)가 주사위 " << dice<< "을 던졌습니다! " << dice << "칸을 이동합니다." << endl;
-			tPlayer.iPos += dice;	// 9
-			
-			tPlayer.iPosition = mapPosition[tPlayer.iPos];
+			if (isInDeIsland) cout << "무인도에 있어 이동을 할 수가 없습니다.";
+			else {
+				tPlayer.iPos += dice;
+				if (tPlayer.iPos > MEND_MAP) tPlayer.iPos -= MEND_MAP + 1;
+
+				tPlayer.iPosition = mapPosition[tPlayer.iPos];
+			}
+			// 특별한 위치의 이벤트 설정
+			// 황금카드
+			string goldcard[] = { "시작부분으로 돌아가기", "무작위로 팔리지 않은 땅 하나 갖기", "5만원 받기", "5만원 내기", "무인도 가기" };
+			if (tPlayer.iPos == MSTAR_MAP1 || tPlayer.iPos == MSTAR_MAP2 || tPlayer.iPos == MSTAR_MAP3) {
+				cout << "황금카드에 당첨되셨습니다. 카드를 뽑으세요!" << endl;
+			}
+
+			//무인도
+			/*if (tPlayer.iPos == MDE_ISRAND) {
+				int a = 0;
+					cout << "무인도에 갇혔습니다. %d턴간 머무르게 됩니다." << endl;
+					if (a)
+						if (dice == 6)
+
+				}
+			}*/
 
 			// 컴퓨터 이동
 			dice = rand() % 6 + 1;
 			cout << tAI.strName << "(이)가 주사위 " << dice << "을 던졌습니다! " << dice << "칸을 이동합니다." << endl;
 			tAI.iPos += dice;
+			if (tAI.iPos > MEND_MAP) tAI.iPos -= MEND_MAP+1;
+
 			tAI.iPosition = mapPosition[tAI.iPos];
 
-			// 만약 끝에 도달하면 다시 처음으로 돌아간다.
-				/*if (END_MAP) tPlayer.iPosition = 0, tPlayer.iPos = 0;
-				if (END_MAP) tAI.iPosition = 0, tAI.iPos = 0;*/
+			
+
+			
+
+
 			getchar();
 			break;
 		}
