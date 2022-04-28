@@ -32,18 +32,13 @@ enum MAPPOS_SPECIAL {
 
 using namespace std;
 
-//게임 룰
-//start칸에 들어가면 1000원 +
-//상대방이 구매한 칸에 들어가면 1000원 -
-//
+// ** 게임 룰 **
+// 상대방이 구매한 칸에 들어가면 2000원 -
+// 땅 구매에 드는 돈 1000원
+// 시작지점 지날 때마다 1000원 지급
 //☆은 황금카드
-//황금 카드 능력
-//1. 무작위로 남의 하나 땅 빼앗기
-//2. 출발 지점으로 이동
-//3. 무인도로 이동
-//
-//승리 조건
-//게임은 상대방이 파산하거나 100만원을 먼저 모으면 승리
+// * 승리 조건
+//게임은 상대방이 파산하거나 100만원을 먼저 모으면 승리!
 
 struct _tagPlayer {
 	bool ifTwoMoney = false;
@@ -61,7 +56,6 @@ int main() {
 	_tagPlayer tAI = {};
 	strcpy(tAI.strName, "Computer");
 
-	
 	// 칸 위치 집어넣기
 	int mapPosition[WIDTH_SIZE*HEIGHT_SIZE] = {};
 	int po = 0;
@@ -85,7 +79,7 @@ int main() {
 	while (true) {
 		char gamesize[WIDTH_SIZE][HEIGHT_SIZE] = {};
 		system("cls");
-		printf("==== 부유마불 ====\n\n");
+		cout << "==== 부유마불 ===="<<endl <<endl;
 		for (int i = 0; i < 7; i++) {
 			for (int j = 0; j < 7; j++) {
 				int a = i * 7 + j;
@@ -151,21 +145,20 @@ int main() {
 			//무인도
 			
 			if (tPlayer.iPos == MDE_ISRAND) {
-				if(!a)
-					isInDeIsland = true;
+				if(!a) isInDeIsland = true;
 					cout << "무인도에 갇혔습니다. "<<3-a<<"턴간 머무르게 됩니다." << endl;
 					if (a) {
 						cout << "주사위가 6이 나올 시 탈출할 수 있습니다." << endl;
 						if (dice == 6) {
 							cout << "무인도 탈출! 다음턴부터 무인도를 나가게 됩니다!" << endl;
 							isInDeIsland = false;
-							a = 0;
+							a = -1;
 						}
 					}
 					if (a == 3) {
 						cout << "3턴이 지났습니다. 다음턴부터 무인도를 나가게 됩니다." << endl;
 						isInDeIsland = false;
-						a = 0;
+						a = -1;
 					}
 					a++;
 			}
@@ -183,9 +176,6 @@ int main() {
 			getchar();
 			break;
 		}
-
-		
 	}
-
 	return 0;
 }
