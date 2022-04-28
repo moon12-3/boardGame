@@ -46,7 +46,7 @@ using namespace std;
 //게임은 상대방이 파산하거나 100만원을 먼저 모으면 승리
 
 struct _tagPlayer {
-	bool ifTwo = false; // 한 번 이상 시작지점을 돌았는지
+	bool ifTwoMoney = false;
 	char strName[NAME_SIZE];
 	int iPosition = 0;
 	int iPos = 0;
@@ -76,6 +76,12 @@ int main() {
 
 	cout << "이름을 입력하세요 : ";
 	cin >> tPlayer.strName;
+
+	// 필요한 변수
+	// * 무인도
+	bool isInDeIsland = false;
+	int a = 0;
+
 	while (true) {
 		char gamesize[WIDTH_SIZE][HEIGHT_SIZE] = {};
 		system("cls");
@@ -102,8 +108,8 @@ int main() {
 		
 
 		// 말 위치 출력
-		cout << endl << tPlayer.strName << " 말 위치 : " << tPlayer.iPos <<endl;
-		cout << tAI.strName << " 말 위치 : " << tAI.iPos << endl <<endl;
+		cout << endl << tPlayer.strName << " 말 위치 : " << tPlayer.iPos << "\t돈 : " <<tPlayer.money << endl;
+		cout << tAI.strName << " 말 위치 : " << tAI.iPos << "\t돈 : " << tAI.money << endl <<endl;
 		
 		cout << "1. 주사위 굴리기" << endl;
 		cout << "2. 게임 종료" << endl;
@@ -113,18 +119,29 @@ int main() {
 		if (iMenu == MENU_EXIT) break;
 		switch(iMenu) {
 		case MENU_ROLL :
-			bool isInDeIsland = false;
+			
 			// 플레이어 이동
 			int dice = rand() % 6 + 1;
 			cout << tPlayer.strName << "(이)가 주사위 " << dice<< "을 던졌습니다! " << dice << "칸을 이동합니다." << endl;
-			if (isInDeIsland) cout << "무인도에 있어 이동을 할 수가 없습니다.";
+			if (isInDeIsland)
+				cout << "이동을 할 수가 없습니다.";
 			else {
 				tPlayer.iPos += dice;
-				if (tPlayer.iPos > MEND_MAP) tPlayer.iPos -= MEND_MAP + 1;
-
+				if (tPlayer.iPos > MEND_MAP) { 
+					tPlayer.iPos -= MEND_MAP + 1; 
+					tPlayer.ifTwoMoney = true;
+				}
 				tPlayer.iPosition = mapPosition[tPlayer.iPos];
 			}
 			// 특별한 위치의 이벤트 설정
+			 
+			// 시작지점 지나면
+			if (tPlayer.ifTwoMoney) {
+				cout << "시작지점을 지났습니다! 1000원을 지급합니다." <<endl;
+				tPlayer.money += 1000;
+				tPlayer.ifTwoMoney = false;
+			}
+			 
 			// 황금카드
 			string goldcard[] = { "시작부분으로 돌아가기", "무작위로 팔리지 않은 땅 하나 갖기", "5만원 받기", "5만원 내기", "무인도 가기" };
 			if (tPlayer.iPos == MSTAR_MAP1 || tPlayer.iPos == MSTAR_MAP2 || tPlayer.iPos == MSTAR_MAP3) {
@@ -132,14 +149,28 @@ int main() {
 			}
 
 			//무인도
-			/*if (tPlayer.iPos == MDE_ISRAND) {
-				int a = 0;
-					cout << "무인도에 갇혔습니다. %d턴간 머무르게 됩니다." << endl;
-					if (a)
-						if (dice == 6)
+			
+			if (tPlayer.iPos == MDE_ISRAND) {
+				if(!a)
+					isInDeIsland = true;
+					cout << "무인도에 갇혔습니다. "<<3-a<<"턴간 머무르게 됩니다." << endl;
+					if (a) {
+						cout << "주사위가 6이 나올 시 탈출할 수 있습니다." << endl;
+						if (dice == 6) {
+							cout << "무인도 탈출! 다음턴부터 무인도를 나가게 됩니다!" << endl;
+							isInDeIsland = false;
+							a = 0;
+						}
+					}
+					if (a == 3) {
+						cout << "3턴이 지났습니다. 다음턴부터 무인도를 나가게 됩니다." << endl;
+						isInDeIsland = false;
+						a = 0;
+					}
+					a++;
+			}
 
-				}
-			}*/
+			cout << endl;
 
 			// 컴퓨터 이동
 			dice = rand() % 6 + 1;
@@ -148,11 +179,6 @@ int main() {
 			if (tAI.iPos > MEND_MAP) tAI.iPos -= MEND_MAP+1;
 
 			tAI.iPosition = mapPosition[tAI.iPos];
-
-			
-
-			
-
 
 			getchar();
 			break;
