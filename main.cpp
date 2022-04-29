@@ -24,11 +24,15 @@ enum SPECIAL_MAP {
 };
 
 enum MAPPOS_SPECIAL {
-	MSTAR_MAP1 = 5,
-	MDE_ISRAND,
-	MSTAR_MAP2 = 10,
-	MSTAR_MAP3 = 21,
-	MEND_MAP = 23
+	MSTAR_MAP1 = 5,		// 황금카드 1
+	MDE_ISRAND,			// 무인도
+	MBACK_MAP = 9,		// 걸리면 1~3칸 뒤로 감
+	MSTAR_MAP2,			// 황금카드 2
+	MGOFRONT_MAP = 18,	// 걸리면 1~3칸 앞으로 감
+	MSTAR_MAP3 = 21,	// 황금카드 3
+	MEND_MAP = 23		// 맵 끝
+	
+
 };
 
 using namespace std;
@@ -39,21 +43,22 @@ using namespace std;
 // 시작지점 지날 때마다 1000원 지급
 //☆은 황금카드
 // * 승리 조건
-//게임은 상대방이 파산하거나 100만원을 먼저 모으면 승리!
+//게임은 상대방이 파산하거나 50만원을 먼저 모으면 승리!
 
 class _tagPlayer {
 public:
-	bool ifTwoMoney = false;	//시작지점에서 돈을 받아야 하는지
-	bool isInDeIsland = false;	//무인도
-	int a = 0;
-	char strName[NAME_SIZE];
+	
+	char strName[NAME_SIZE] = "COMPUTER";
 	int iPosition = 0;
 	int iPos = 0;
-	int money = 10000;
-
+	int money = 50000;
+	bool ifTwoMoney = false;	//시작지점에서 돈을 받아야 하는지
+	bool isInDeIsland = false;	//무인도
+	int a = 0;	// 무인도에 갇힌 턴 수
 	// 시작지점
 	void start(void) {
 		if (ifTwoMoney) {
+			
 			cout << "시작지점을 지났습니다! 10000원을 지급합니다." << endl;
 			money += 10000;
 			ifTwoMoney = false;
@@ -65,12 +70,12 @@ public:
 			if (!a) isInDeIsland = true;
 			cout << "무인도에 갇혔습니다. " << 3 - a << "턴간 머무르게 됩니다." << endl;
 			if (a) {
-				cout << "주사위가 6이 나올 시 탈출할 수 있습니다." << endl;
 				if (dice == 6) {
-					cout << "무인도 탈출! 다음턴부터 무인도를 나가게 됩니다!" << endl;
+					cout << "6이 나왔습니다. 무인도 탈출! 다음턴부터 무인도를 나가게 됩니다!" << endl;
 					isInDeIsland = false;
 					a = -1;
 				}
+				else cout << "주사위가 6이 나올 시 탈출할 수 있습니다." << endl;
 			}
 			if (a == 3) {
 				cout << "3턴이 지났습니다. 다음턴부터 무인도를 나가게 됩니다." << endl;
@@ -81,23 +86,63 @@ public:
 		}
 	}
 	// 황금카드
-	void pickgoldcard(string* goldcard) {
-		if (iPos == MSTAR_MAP1 || iPos == MSTAR_MAP2 || iPos == MSTAR_MAP3) {
-			string selectcard[3];
-			for (int i = 0; i < 3; i++) {
-				int random = rand() % 4 + 1;
-				selectcard[i] = goldcard[random];
-			}
-			cout << "황금카드에 당첨되셨습니다. 원하는 카드를 뽑으세요!" << endl;
-			cout << "1  2  3 : ";
-			int iMenu;
-			cin >> iMenu;
-			while (iMenu < 1 || iMenu>3) {
-				cout << "원하는 카드를 뽑으세요!" << endl;
-				cin >> iMenu;
-			}
-			getchar();
-			cout << "[ " << selectcard[iMenu] << " ] " << "에 당첨되셨습니다!" << endl;
+	void pickgoldcard(string* goldcard, int iMenu) {
+		string selectcard[3];
+		for (int i = 0; i < 3; i++) {
+			int random = rand() % 4 + 1;
+			selectcard[i] = goldcard[random];
+		}
+		cout << "[ " << selectcard[iMenu] << " ] " << "에 당첨되셨습니다!" << endl;
+		for (int i = 0; i < 5; i++) {
+			if (selectcard[iMenu] == goldcard[i])
+				switch (i) {
+				// 시작지점으로 돌아가기
+				case 0 :
+					cout << "시작지점으로 이동합니다!" <<endl;
+					iPos = 0;
+					iPosition = 0;
+					break;
+				// 무작위 순간이동
+				case 1 :
+					cout << "랜덤으로 다른 땅에 이동됩니다!" << endl;
+					iPos = rand() % MEND_MAP;
+					break;
+				// 5만원 받기
+				case 2 :
+					cout << "5만원을 획득합니다." << endl;
+					money += 50000;
+					break;
+				// 5만원 내기
+				case 3 : 
+					cout << "5만원을 잃습니다." << endl;
+					money -= 50000;
+					break;
+				// 무인도로 이동
+				case 4:
+					cout << "무인도로 이동합니다." << endl;
+					isInDeIsland = true;
+					iPos = MDE_ISRAND;
+					iPosition = DE_ISRAND;
+					break;
+				}
+		}
+	}
+
+	void back(int* mapPosition) {
+		if (iPos == MBACK_MAP) {
+			int random = rand() % 3 + 1;
+			cout << "트랩을 밟았습니다... " << random << "칸 뒤로 이동합니다!"<<endl;
+			iPos -= random;
+			iPosition = *(mapPosition - random);
+		}
+	}
+
+	void goFront(int* mapPosition) {
+		if (iPos == MGOFRONT_MAP) {
+			int random = rand() % 3 + 1;
+			cout << "히치 하이킹 성공! " << random << "칸 앞으로 이동합니다!"<<endl;
+			iPos += random;
+			iPosition = *(mapPosition+random);
 		}
 	}
 
@@ -126,13 +171,38 @@ int main() {
 	cin >> tPlayer.strName;
 
 	// 필요한 변수
-	string goldcard[] = { "시작부분으로 돌아가기", "무작위로 팔리지 않은 땅 하나 갖기", "5만원 받기", "5만원 내기", "무인도 가기" };
+	string goldcard[] = { "시작부분으로 돌아가기", "무작위 순간이동", "5만원 받기", "5만원 내기", "무인도 가기" };
 	
 
 	while (true) {
 		char gamesize[WIDTH_SIZE][HEIGHT_SIZE] = {};
 		system("cls");
-		cout << "==== 부유마불 ===="<<endl <<endl;
+		
+		// 컴퓨터 승리 조건
+		if (tPlayer.money < 0 || tAI.money >= 500000) {
+			cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+			cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << endl;
+			cout << "THE WINNER IS...." << tAI.strName <<"!!!" << endl;
+			cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << endl;
+			cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+
+			system("pause");
+			break;
+		}
+
+		// 플레이어 승리 조건
+		else if (tAI.money < 0 || tPlayer.money >= 500000) {
+			cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+			cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << endl;
+			cout << "THE WINNER IS...." << tPlayer.strName << "!!!" << endl;
+			cout << "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-" << endl;
+			cout << "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+
+			system("pause");
+			break;
+		}
+
+		cout << "~~~~ 부유마불 ~~~~"<<endl <<endl;
 		for (int i = 0; i < 7; i++) {
 			for (int j = 0; j < 7; j++) {
 				int a = i * 7 + j;
@@ -161,10 +231,16 @@ int main() {
 		int iMenu;
 		cin >> iMenu;
 		getchar();
+		if (cin.fail()) {
+			cin.clear();
+			cin.ignore(1024, '\n');
+			continue;
+		}
 		if (iMenu == MENU_EXIT) break;
 		switch (iMenu) {
 		case MENU_ROLL:
 			// 플레이어 이동
+			cout << "==== PLAYER ====" << endl;
 			int dice = rand() % 6 + 1;
 			cout << tPlayer.strName << "(이)가 주사위 " << dice << "을 던졌습니다! " << dice << "칸을 이동합니다." << endl;
 			if(!tPlayer.isInDeIsland) {
@@ -176,18 +252,38 @@ int main() {
 				tPlayer.iPosition = mapPosition[tPlayer.iPos];
 			}
 			// 특별한 위치의 이벤트 설정
-			// 1. 시작지점 지나면
+			// 1. 걸리면 1~3칸 뒤로 이동
+			tPlayer.back(&mapPosition[tPlayer.iPos]);
+
+			// 2. 걸리면 1~3칸 앞으로 이동
+			tPlayer.goFront(&mapPosition[tPlayer.iPos]);
+
+			// 3. 시작지점 지나면
 			tPlayer.start();
 
-			// 2.황금카드
-			tPlayer.pickgoldcard(goldcard);
+			// 4. 황금카드
+			if (tPlayer.iPos == MSTAR_MAP1 || tPlayer.iPos == MSTAR_MAP2 || tPlayer.iPos == MSTAR_MAP3) {
+				cout << "황금카드에 당첨되셨습니다. 원하는 카드를 뽑으세요!" << endl;
+				cout << "1  2  3 : ";
+				cin >> iMenu;
+				getchar();
+				while (iMenu < 1 || iMenu>3) {
+					cout << "카드를 뽑으세요!" << endl;
+					cin >> iMenu;
+					getchar();
+				}
+				tPlayer.pickgoldcard(goldcard, iMenu-1);
+			}
 
-			//3. 무인도
+			// 5. 무인도
 			tPlayer.deIsland(dice);
+
+			
 
 			cout << endl;
 
 			// 컴퓨터 이동
+			cout << "==== COMPUTER ====" << endl;
 			dice = rand() % 6 + 1;
 			cout << tAI.strName << "(이)가 주사위 " << dice << "을 던졌습니다! " << dice << "칸을 이동합니다." << endl;
 			if(!tAI.isInDeIsland) {
@@ -198,6 +294,13 @@ int main() {
 				}
 				tAI.iPosition = mapPosition[tAI.iPos];
 			}
+
+			// 컴퓨터 걸리면 1~3칸 뒤로 이동
+			tAI.back(&mapPosition[tAI.iPos]);
+
+			// 컴퓨터 걸리면 1~3칸 앞으로 이동
+			tAI.goFront(&mapPosition[tAI.iPos]);
+
 			// 컴퓨터 시작지점
 			tAI.start();
 			
@@ -206,8 +309,11 @@ int main() {
 				tAI.deIsland(dice);
 
 			// 컴퓨터 황금카드
-			tAI.pickgoldcard(goldcard);
-
+			if (tAI.iPos == MSTAR_MAP1 || tAI.iPos == MSTAR_MAP2 || tAI.iPos == MSTAR_MAP3) {
+				cout << "황금카드에 당첨되셨습니다." << endl;
+				iMenu = rand() % 3;
+				tAI.pickgoldcard(goldcard, iMenu);
+			}
 			getchar();
 			break;
 		}
